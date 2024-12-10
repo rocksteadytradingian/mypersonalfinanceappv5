@@ -5,8 +5,55 @@ import { Button } from './ui/Button';
 import { formatCurrency } from '../utils/formatters';
 import { startOfDay, endOfDay, isWithinInterval } from 'date-fns';
 import { TransactionList } from './TransactionList';
+import { Transaction, FundSource, CreditCard, Debt, Budget, RecurringTransaction } from '../types/finance';
 
 type ReportType = 'fund-sources' | 'credit-cards' | 'debts' | 'budget' | 'recurring' | 'records' | 'transactions';
+
+interface FundSourceReport extends FundSource {
+  transactions: Transaction[];
+  income: number;
+  expenses: number;
+  netFlow: number;
+}
+
+interface CreditCardReport extends CreditCard {
+  transactions: Transaction[];
+  charges: number;
+}
+
+interface DebtReport extends Debt {
+  transactions: Transaction[];
+  payments: number;
+}
+
+interface BudgetReport extends Budget {
+  transactions: Transaction[];
+  spent: number;
+  remaining: number;
+}
+
+interface RecurringReport extends RecurringTransaction {
+  transactions: Transaction[];
+  occurrences: number;
+  total: number;
+}
+
+interface TransactionReport {
+  data: Transaction[];
+  summary: {
+    income: number;
+    expenses: number;
+    debt: number;
+  };
+}
+
+type ReportData = 
+  | { type: 'fund-sources'; data: FundSourceReport[] }
+  | { type: 'credit-cards'; data: CreditCardReport[] }
+  | { type: 'debts'; data: DebtReport[] }
+  | { type: 'budget'; data: BudgetReport[] }
+  | { type: 'recurring'; data: RecurringReport[] }
+  | { type: 'transactions'; data: Transaction[]; summary: TransactionReport['summary'] };
 
 export function Reports() {
   const { 
@@ -25,7 +72,7 @@ export function Reports() {
     endDate: '',
   });
 
-  const filteredData = useMemo(() => {
+  const filteredData = useMemo<ReportData | null>(() => {
     if (!dateRange.startDate || !dateRange.endDate) return null;
 
     const start = startOfDay(new Date(dateRange.startDate));
@@ -163,19 +210,19 @@ export function Reports() {
                   <div>
                     <p className="text-sm text-gray-600">Income</p>
                     <p className="text-lg font-semibold text-green-600">
-                      {formatCurrency(source.income, userProfile?.currency)}
+                      {formatCurrency(source.income)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Expenses</p>
                     <p className="text-lg font-semibold text-red-600">
-                      {formatCurrency(source.expenses, userProfile?.currency)}
+                      {formatCurrency(source.expenses)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Net Flow</p>
                     <p className={`text-lg font-semibold ${source.netFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(source.netFlow, userProfile?.currency)}
+                      {formatCurrency(source.netFlow)}
                     </p>
                   </div>
                 </div>
@@ -199,7 +246,7 @@ export function Reports() {
                 <div className="mb-4">
                   <p className="text-sm text-gray-600">Total Charges</p>
                   <p className="text-lg font-semibold text-red-600">
-                    {formatCurrency(card.charges, userProfile?.currency)}
+                    {formatCurrency(card.charges)}
                   </p>
                 </div>
                 <TransactionList 
@@ -223,19 +270,19 @@ export function Reports() {
                   <div>
                     <p className="text-sm text-gray-600">Total Debt</p>
                     <p className="text-lg font-semibold text-red-600">
-                      {formatCurrency(debt.amount, userProfile?.currency)}
+                      {formatCurrency(debt.amount)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Payments Made</p>
                     <p className="text-lg font-semibold text-green-600">
-                      {formatCurrency(debt.payments, userProfile?.currency)}
+                      {formatCurrency(debt.payments)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Remaining</p>
                     <p className="text-lg font-semibold text-blue-600">
-                      {formatCurrency(debt.amount - debt.payments, userProfile?.currency)}
+                      {formatCurrency(debt.amount - debt.payments)}
                     </p>
                   </div>
                 </div>
@@ -260,19 +307,19 @@ export function Reports() {
                   <div>
                     <p className="text-sm text-gray-600">Budget</p>
                     <p className="text-lg font-semibold text-blue-600">
-                      {formatCurrency(budget.amount, userProfile?.currency)}
+                      {formatCurrency(budget.amount)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Spent</p>
                     <p className="text-lg font-semibold text-red-600">
-                      {formatCurrency(budget.spent, userProfile?.currency)}
+                      {formatCurrency(budget.spent)}
                     </p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Remaining</p>
                     <p className={`text-lg font-semibold ${budget.remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatCurrency(budget.remaining, userProfile?.currency)}
+                      {formatCurrency(budget.remaining)}
                     </p>
                   </div>
                 </div>
@@ -313,7 +360,7 @@ export function Reports() {
                   <div>
                     <p className="text-sm text-gray-600">Total Amount</p>
                     <p className="text-lg font-semibold">
-                      {formatCurrency(recurring.total, userProfile?.currency)}
+                      {formatCurrency(recurring.total)}
                     </p>
                   </div>
                 </div>
@@ -336,19 +383,19 @@ export function Reports() {
                 <div>
                   <p className="text-sm text-gray-600">Total Income</p>
                   <p className="text-lg font-semibold text-green-600">
-                    {formatCurrency(filteredData.summary.income, userProfile?.currency)}
+                    {formatCurrency(filteredData.summary.income)}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Expenses</p>
                   <p className="text-lg font-semibold text-red-600">
-                    {formatCurrency(filteredData.summary.expenses, userProfile?.currency)}
+                    {formatCurrency(filteredData.summary.expenses)}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Debt Payments</p>
                   <p className="text-lg font-semibold text-blue-600">
-                    {formatCurrency(filteredData.summary.debt, userProfile?.currency)}
+                    {formatCurrency(filteredData.summary.debt)}
                   </p>
                 </div>
               </div>

@@ -7,8 +7,13 @@ import { startOfMonth, endOfMonth } from 'date-fns';
 
 const COLORS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
 
+interface ExpenseCategory {
+  name: string;
+  value: number;
+}
+
 export function ExpenseAnalysis() {
-  const { transactions, userProfile } = useFinanceStore();
+  const { transactions } = useFinanceStore();
   
   const currentDate = new Date();
   const monthStart = startOfMonth(currentDate);
@@ -28,7 +33,7 @@ export function ExpenseAnalysis() {
       acc.push({ name: t.category, value: t.amount });
     }
     return acc;
-  }, [] as { name: string; value: number }[]);
+  }, [] as ExpenseCategory[]);
 
   const totalExpenses = expensesByCategory.reduce((sum, cat) => sum + cat.value, 0);
 
@@ -39,7 +44,7 @@ export function ExpenseAnalysis() {
       <div className="mb-6">
         <p className="text-sm text-gray-600">Total Monthly Expenses</p>
         <p className="text-2xl font-bold text-red-600">
-          {formatCurrency(totalExpenses, userProfile?.currency)}
+          {formatCurrency(totalExpenses)}
         </p>
       </div>
 
@@ -59,9 +64,7 @@ export function ExpenseAnalysis() {
                 <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip 
-              formatter={(value) => formatCurrency(value as number, userProfile?.currency)} 
-            />
+            <Tooltip formatter={(value) => formatCurrency(value as number)} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -78,7 +81,7 @@ export function ExpenseAnalysis() {
             </div>
             <div className="text-right">
               <p className="font-medium">
-                {formatCurrency(category.value, userProfile?.currency)}
+                {formatCurrency(category.value)}
               </p>
               <p className="text-sm text-gray-500">
                 {((category.value / totalExpenses) * 100).toFixed(1)}%

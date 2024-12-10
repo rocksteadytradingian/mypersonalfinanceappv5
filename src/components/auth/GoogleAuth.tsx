@@ -10,11 +10,15 @@ interface GoogleUser {
   picture: string;
 }
 
+interface GoogleResponse {
+  access_token: string;
+}
+
 export function GoogleAuth() {
   const { setUserProfile, userProfile } = useFinanceStore();
 
   const login = useGoogleLogin({
-    onSuccess: async (response) => {
+    onSuccess: async (response: GoogleResponse) => {
       try {
         const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: { Authorization: `Bearer ${response.access_token}` },

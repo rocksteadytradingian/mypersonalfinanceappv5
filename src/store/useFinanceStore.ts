@@ -14,55 +14,62 @@ interface FinanceStore {
   userProfile: UserProfile | null;
 
   // User Profile Actions
-  setUserProfile: (profile: UserProfile) => void;
-  updateUserProfile: (profile: Partial<UserProfile>) => void;
+  setUserProfile: (profile: UserProfile | null) => void;
+  updateUserProfile: (profile: Partial<Omit<UserProfile, 'id'>>) => void;
   updateCurrency: (currency: string) => void;
 
   // Transaction Actions
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
-  updateTransaction: (id: string, transaction: Partial<Transaction>) => void;
+  setTransactions: (transactions: Transaction[]) => void;
+  addTransaction: (transaction: Transaction) => void;
+  updateTransaction: (id: string, transaction: Partial<Omit<Transaction, 'id'>>) => void;
   deleteTransaction: (id: string) => void;
 
   // Budget Actions
-  addBudget: (budget: Omit<Budget, 'id'>) => void;
-  updateBudget: (id: string, budget: Partial<Budget>) => void;
+  setBudgets: (budgets: Budget[]) => void;
+  addBudget: (budget: Budget) => void;
+  updateBudget: (id: string, budget: Partial<Omit<Budget, 'id'>>) => void;
   deleteBudget: (id: string) => void;
 
   // Debt Actions
-  addDebt: (debt: Omit<Debt, 'id'>) => void;
-  updateDebt: (id: string, debt: Partial<Debt>) => void;
+  setDebts: (debts: Debt[]) => void;
+  addDebt: (debt: Debt) => void;
+  updateDebt: (id: string, debt: Partial<Omit<Debt, 'id'>>) => void;
   deleteDebt: (id: string) => void;
 
   // Recurring Transaction Actions
-  addRecurringTransaction: (transaction: Omit<RecurringTransaction, 'id'>) => void;
-  updateRecurringTransaction: (id: string, transaction: Partial<RecurringTransaction>) => void;
+  setRecurringTransactions: (transactions: RecurringTransaction[]) => void;
+  addRecurringTransaction: (transaction: RecurringTransaction) => void;
+  updateRecurringTransaction: (id: string, transaction: Partial<Omit<RecurringTransaction, 'id'>>) => void;
   deleteRecurringTransaction: (id: string) => void;
-  processRecurringTransactions: () => void;
 
   // Credit Card Actions
-  addCreditCard: (creditCard: Omit<CreditCard, 'id'>) => void;
-  updateCreditCard: (id: string, creditCard: Partial<CreditCard>) => void;
+  setCreditCards: (creditCards: CreditCard[]) => void;
+  addCreditCard: (creditCard: CreditCard) => void;
+  updateCreditCard: (id: string, creditCard: Partial<Omit<CreditCard, 'id'>>) => void;
   deleteCreditCard: (id: string) => void;
 
   // Fund Source Actions
-  addFundSource: (fundSource: Omit<FundSource, 'id'>) => void;
-  updateFundSource: (id: string, fundSource: Partial<FundSource>) => void;
+  setFundSources: (fundSources: FundSource[]) => void;
+  addFundSource: (fundSource: FundSource) => void;
+  updateFundSource: (id: string, fundSource: Partial<Omit<FundSource, 'id'>>) => void;
   deleteFundSource: (id: string) => void;
 
   // Investment Actions
-  addInvestment: (investment: Omit<Investment, 'id'>) => void;
-  updateInvestment: (id: string, investment: Partial<Investment>) => void;
+  setInvestments: (investments: Investment[]) => void;
+  addInvestment: (investment: Investment) => void;
+  updateInvestment: (id: string, investment: Partial<Omit<Investment, 'id'>>) => void;
   deleteInvestment: (id: string) => void;
 
   // Loan Actions
-  addLoan: (loan: Omit<Loan, 'id'>) => void;
-  updateLoan: (id: string, loan: Partial<Loan>) => void;
+  setLoans: (loans: Loan[]) => void;
+  addLoan: (loan: Loan) => void;
+  updateLoan: (id: string, loan: Partial<Omit<Loan, 'id'>>) => void;
   deleteLoan: (id: string) => void;
 }
 
 export const useFinanceStore = create<FinanceStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       transactions: [],
       budgets: [],
       debts: [],
@@ -83,10 +90,10 @@ export const useFinanceStore = create<FinanceStore>()(
       })),
 
       // Transaction Actions
-      addTransaction: (transaction) => {
-        const newTransaction = { ...transaction, id: crypto.randomUUID() };
-        set((state) => ({ transactions: [...state.transactions, newTransaction] }));
-      },
+      setTransactions: (transactions) => set({ transactions }),
+      addTransaction: (transaction) => set((state) => ({
+        transactions: [...state.transactions, transaction]
+      })),
       updateTransaction: (id, transaction) => set((state) => ({
         transactions: state.transactions.map((t) =>
           t.id === id ? { ...t, ...transaction } : t
@@ -97,8 +104,9 @@ export const useFinanceStore = create<FinanceStore>()(
       })),
 
       // Budget Actions
+      setBudgets: (budgets) => set({ budgets }),
       addBudget: (budget) => set((state) => ({
-        budgets: [...state.budgets, { ...budget, id: crypto.randomUUID() }],
+        budgets: [...state.budgets, budget],
       })),
       updateBudget: (id, budget) => set((state) => ({
         budgets: state.budgets.map((b) => (b.id === id ? { ...b, ...budget } : b)),
@@ -108,8 +116,9 @@ export const useFinanceStore = create<FinanceStore>()(
       })),
 
       // Debt Actions
+      setDebts: (debts) => set({ debts }),
       addDebt: (debt) => set((state) => ({
-        debts: [...state.debts, { ...debt, id: crypto.randomUUID() }],
+        debts: [...state.debts, debt],
       })),
       updateDebt: (id, debt) => set((state) => ({
         debts: state.debts.map((d) => (d.id === id ? { ...d, ...debt } : d)),
@@ -119,11 +128,9 @@ export const useFinanceStore = create<FinanceStore>()(
       })),
 
       // Recurring Transaction Actions
+      setRecurringTransactions: (transactions) => set({ recurringTransactions: transactions }),
       addRecurringTransaction: (transaction) => set((state) => ({
-        recurringTransactions: [
-          ...state.recurringTransactions,
-          { ...transaction, id: crypto.randomUUID() },
-        ],
+        recurringTransactions: [...state.recurringTransactions, transaction],
       })),
       updateRecurringTransaction: (id, transaction) => set((state) => ({
         recurringTransactions: state.recurringTransactions.map((t) =>
@@ -133,53 +140,11 @@ export const useFinanceStore = create<FinanceStore>()(
       deleteRecurringTransaction: (id) => set((state) => ({
         recurringTransactions: state.recurringTransactions.filter((t) => t.id !== id),
       })),
-      processRecurringTransactions: () => {
-        const state = get();
-        const today = new Date();
-        
-        state.recurringTransactions.forEach((recurring) => {
-          const lastOccurrence = new Date(recurring.lastProcessed || recurring.startDate);
-          const nextDue = new Date(lastOccurrence);
-          
-          switch (recurring.frequency) {
-            case 'daily':
-              nextDue.setDate(nextDue.getDate() + 1);
-              break;
-            case 'weekly':
-              nextDue.setDate(nextDue.getDate() + 7);
-              break;
-            case 'monthly':
-              nextDue.setMonth(nextDue.getMonth() + 1);
-              break;
-            case 'yearly':
-              nextDue.setFullYear(nextDue.getFullYear() + 1);
-              break;
-          }
-
-          if (nextDue <= today) {
-            state.addTransaction({
-              date: new Date(),
-              amount: recurring.amount,
-              type: recurring.type,
-              category: recurring.category,
-              details: `${recurring.details} (Recurring)`,
-              from: recurring.from,
-            });
-
-            set((state) => ({
-              recurringTransactions: state.recurringTransactions.map((t) =>
-                t.id === recurring.id
-                  ? { ...t, lastProcessed: today.toISOString() }
-                  : t
-              ),
-            }));
-          }
-        });
-      },
 
       // Credit Card Actions
+      setCreditCards: (creditCards) => set({ creditCards }),
       addCreditCard: (creditCard) => set((state) => ({
-        creditCards: [...state.creditCards, { ...creditCard, id: crypto.randomUUID() }],
+        creditCards: [...state.creditCards, creditCard],
       })),
       updateCreditCard: (id, creditCard) => set((state) => ({
         creditCards: state.creditCards.map((c) =>
@@ -191,8 +156,9 @@ export const useFinanceStore = create<FinanceStore>()(
       })),
 
       // Fund Source Actions
+      setFundSources: (fundSources) => set({ fundSources }),
       addFundSource: (fundSource) => set((state) => ({
-        fundSources: [...state.fundSources, { ...fundSource, id: crypto.randomUUID() }],
+        fundSources: [...state.fundSources, fundSource],
       })),
       updateFundSource: (id, fundSource) => set((state) => ({
         fundSources: state.fundSources.map((f) =>
@@ -204,8 +170,9 @@ export const useFinanceStore = create<FinanceStore>()(
       })),
 
       // Investment Actions
+      setInvestments: (investments) => set({ investments }),
       addInvestment: (investment) => set((state) => ({
-        investments: [...state.investments, { ...investment, id: crypto.randomUUID() }],
+        investments: [...state.investments, investment],
       })),
       updateInvestment: (id, investment) => set((state) => ({
         investments: state.investments.map((i) =>
@@ -217,8 +184,9 @@ export const useFinanceStore = create<FinanceStore>()(
       })),
 
       // Loan Actions
+      setLoans: (loans) => set({ loans }),
       addLoan: (loan) => set((state) => ({
-        loans: [...state.loans, { ...loan, id: crypto.randomUUID() }],
+        loans: [...state.loans, loan],
       })),
       updateLoan: (id, loan) => set((state) => ({
         loans: state.loans.map((l) =>
@@ -234,10 +202,3 @@ export const useFinanceStore = create<FinanceStore>()(
     }
   )
 );
-
-// Process recurring transactions periodically
-if (typeof window !== 'undefined') {
-  setInterval(() => {
-    useFinanceStore.getState().processRecurringTransactions();
-  }, 1000 * 60 * 60); // Every hour
-}

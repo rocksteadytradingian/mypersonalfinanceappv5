@@ -46,13 +46,13 @@ export function IncomeAnalysis() {
         <div>
           <p className="text-sm text-gray-600">Average Monthly Income</p>
           <p className="text-2xl font-bold text-green-600">
-            {formatCurrency(averageIncome, userProfile?.currency)}
+            {formatCurrency(averageIncome)}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Total Annual Income</p>
           <p className="text-2xl font-bold text-blue-600">
-            {formatCurrency(totalIncome, userProfile?.currency)}
+            {formatCurrency(totalIncome)}
           </p>
         </div>
       </div>
@@ -64,7 +64,7 @@ export function IncomeAnalysis() {
             <XAxis dataKey="month" />
             <YAxis />
             <Tooltip 
-              formatter={(value) => formatCurrency(value as number, userProfile?.currency)} 
+              formatter={(value) => formatCurrency(value as number)} 
             />
             <Line 
               type="monotone" 
@@ -80,13 +80,13 @@ export function IncomeAnalysis() {
         <div>
           <p className="text-gray-600">Highest Monthly Income</p>
           <p className="font-medium text-green-600">
-            {formatCurrency(highestIncome, userProfile?.currency)}
+            {formatCurrency(highestIncome)}
           </p>
         </div>
         <div>
           <p className="text-gray-600">Lowest Monthly Income</p>
           <p className="font-medium text-yellow-600">
-            {formatCurrency(lowestIncome, userProfile?.currency)}
+            {formatCurrency(lowestIncome)}
           </p>
         </div>
       </div>

@@ -4,8 +4,15 @@ import { Card } from '../ui/Card';
 import { formatCurrency } from '../../utils/formatters';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
+interface CardData {
+  name: string;
+  balance: number;
+  available: number;
+  utilization: number;
+}
+
 export function CreditCardAnalysis() {
-  const { creditCards, userProfile } = useFinanceStore();
+  const { creditCards } = useFinanceStore();
   
   const totalLimit = creditCards.reduce((sum, card) => sum + card.limit, 0);
   const totalBalance = creditCards.reduce((sum, card) => sum + card.balance, 0);
@@ -19,6 +26,13 @@ export function CreditCardAnalysis() {
     utilization: (card.balance / card.limit) * 100,
   }));
 
+  const formatTooltipValue = (value: number, name: string) => {
+    if (name === 'utilization') {
+      return `${value.toFixed(1)}%`;
+    }
+    return formatCurrency(value);
+  };
+
   return (
     <Card>
       <h3 className="text-lg font-semibold mb-4">Credit Card Analysis</h3>
@@ -27,13 +41,13 @@ export function CreditCardAnalysis() {
         <div>
           <p className="text-sm text-gray-600">Total Credit Limit</p>
           <p className="text-2xl font-bold text-blue-600">
-            {formatCurrency(totalLimit, userProfile?.currency)}
+            {formatCurrency(totalLimit)}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Total Balance</p>
           <p className="text-2xl font-bold text-red-600">
-            {formatCurrency(totalBalance, userProfile?.currency)}
+            {formatCurrency(totalBalance)}
           </p>
         </div>
       </div>
@@ -64,11 +78,9 @@ export function CreditCardAnalysis() {
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip 
-              formatter={(value, name) => [
-                name === 'utilization'
-                  ? `${(value as number).toFixed(1)}%`
-                  : formatCurrency(value as number, userProfile?.currency),
-                name.charAt(0).toUpperCase() + name.slice(1)
+              formatter={(value: number, name: string) => [
+                formatTooltipValue(value, name),
+                name === 'utilization' ? 'Utilization Rate' : name.charAt(0).toUpperCase() + name.slice(1)
               ]}
             />
             <Bar dataKey="balance" stackId="a" fill="#EF4444" name="Balance" />
@@ -78,20 +90,20 @@ export function CreditCardAnalysis() {
       </div>
 
       <div className="space-y-4">
-        {cardData.map(card => (
+        {cardData.map((card: CardData) => (
           <div key={card.name} className="bg-gray-50 p-3 rounded-lg">
             <p className="font-medium mb-2">{card.name}</p>
             <div className="grid grid-cols-3 gap-2 text-sm">
               <div>
                 <p className="text-gray-600">Balance</p>
                 <p className="font-medium text-red-600">
-                  {formatCurrency(card.balance, userProfile?.currency)}
+                  {formatCurrency(card.balance)}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600">Available</p>
                 <p className="font-medium text-green-600">
-                  {formatCurrency(card.available, userProfile?.currency)}
+                  {formatCurrency(card.available)}
                 </p>
               </div>
               <div>

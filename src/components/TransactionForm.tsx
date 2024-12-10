@@ -1,68 +1,54 @@
 import React, { useState } from 'react';
-import { useFinanceStore } from '../store/useFinanceStore';
-import { Transaction, TransactionType } from '../types/finance';
+import { useTransactions } from '../hooks/useTransactions';
+import { Transaction } from '../types/finance';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { CategorySelect } from './CategorySelect';
 import { TransactionList } from './TransactionList';
-import { formatCurrency } from '../utils/formatters';
+import { LoadingScreen } from './ui/LoadingScreen';
 
 export function TransactionForm() {
-  const { 
-    transactions, 
-    addTransaction, 
-    updateTransaction, 
-    deleteTransaction, 
-    fundSources,
-    creditCards 
-  } = useFinanceStore();
-  
+  const { loading, error, createTransaction, updateTransaction, deleteTransaction } = useTransactions();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
     time: new Date().toTimeString().split(' ')[0].slice(0, 5),
     from: '',
-    type: 'expense' as TransactionType,
+    type: 'expense' as Transaction['type'],
     category: '',
     details: '',
     amount: '',
-    fundSourceId: '',
-    creditCardId: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const timestamp = new Date(`${formData.date}T${formData.time}`);
 
-    const transactionData = {
-      date: timestamp,
-      amount: Number(formData.amount),
-      type: formData.type,
-      category: formData.category,
-      details: formData.details,
-      from: formData.from,
-      fundSourceId: formData.fundSourceId,
-      creditCardId: formData.type === 'debt' ? formData.creditCardId : undefined,
-    };
-
-    if (editingId) {
-      updateTransaction(editingId, transactionData);
-      setEditingId(null);
-    } else {
-      addTransaction(transactionData);
-
-      // Update credit card balance if it's a debt transaction
-      if (formData.type === 'debt' && formData.creditCardId) {
-        const creditCard = creditCards.find(card => card.id === formData.creditCardId);
-        if (creditCard) {
-          useFinanceStore.getState().updateCreditCard(formData.creditCardId, {
-            balance: creditCard.balance + Number(formData.amount)
-          });
-        }
+    try {
+      if (editingId) {
+        await updateTransaction(editingId, {
+          date: timestamp,
+          amount: Number(formData.amount),
+          type: formData.type,
+          category: formData.category,
+          details: formData.details,
+          from: formData.from,
+        });
+        setEditingId(null);
+      } else {
+        await createTransaction({
+          date: timestamp,
+          amount: Number(formData.amount),
+          type: formData.type,
+          category: formData.category,
+          details: formData.details,
+          from: formData.from,
+        });
       }
+      resetForm();
+    } catch (err) {
+      console.error('Transaction error:', err);
     }
-
-    resetForm();
   };
 
   const resetForm = () => {
@@ -74,8 +60,6 @@ export function TransactionForm() {
       category: '',
       details: '',
       amount: '',
-      fundSourceId: '',
-      creditCardId: '',
     });
   };
 
@@ -89,8 +73,6 @@ export function TransactionForm() {
       category: transaction.category,
       details: transaction.details,
       amount: transaction.amount.toString(),
-      fundSourceId: transaction.fundSourceId || '',
-      creditCardId: transaction.creditCardId || '',
     });
   };
 
@@ -99,8 +81,16 @@ export function TransactionForm() {
     resetForm();
   };
 
+  if (loading) return <LoadingScreen />;
+
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="rounded-md bg-red-50 p-4">
+          <div className="text-sm text-red-700">{error.message}</div>
+        </div>
+      )}
+
       <Card>
         <h2 className="text-xl font-semibold mb-4">
           {editingId ? 'Edit Transaction' : 'Add New Transaction'}
@@ -134,72 +124,15 @@ export function TransactionForm() {
             <label className="block text-sm font-medium text-gray-700">Transaction Type</label>
             <select
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value as TransactionType })}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value as Transaction['type'] })}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
-              <option value="income">Income</option>
               <option value="expense">Expense</option>
+              <option value="income">Income</option>
               <option value="debt">Debt</option>
               <option value="investment">Investment</option>
             </select>
           </div>
-
-          {formData.type === 'debt' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Credit Card</label>
-              <select
-                required
-                value={formData.creditCardId}
-                onChange={(e) => setFormData({ ...formData, creditCardId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="">Select Credit Card</option>
-                {creditCards.map((card) => (
-                  <option key={card.id} value={card.id}>
-                    {card.name} - {card.bank} (Available: {formatCurrency(card.limit - card.balance)})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {formData.type === 'expense' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">From Account</label>
-              <select
-                required
-                value={formData.fundSourceId}
-                onChange={(e) => setFormData({ ...formData, fundSourceId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="">Select Fund Source</option>
-                {fundSources.map((source) => (
-                  <option key={source.id} value={source.id}>
-                    {source.bankName} - {source.accountName} ({formatCurrency(source.balance)})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {formData.type === 'income' && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700">To Account</label>
-              <select
-                required
-                value={formData.fundSourceId}
-                onChange={(e) => setFormData({ ...formData, fundSourceId: e.target.value })}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="">Select Fund Source</option>
-                {fundSources.map((source) => (
-                  <option key={source.id} value={source.id}>
-                    {source.bankName} - {source.accountName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700">Category</label>
@@ -219,6 +152,18 @@ export function TransactionForm() {
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               min="0"
               step="0.01"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">From/To</label>
+            <input
+              type="text"
+              required
+              value={formData.from}
+              onChange={(e) => setFormData({ ...formData, from: e.target.value })}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              placeholder={formData.type === 'expense' ? 'Paid to' : 'Received from'}
             />
           </div>
 
@@ -248,7 +193,7 @@ export function TransactionForm() {
       <Card>
         <h2 className="text-xl font-semibold mb-4">Recent Transactions</h2>
         <TransactionList
-          transactions={transactions.slice().reverse()}
+          transactions={[]}
           onEdit={handleEdit}
           onDelete={deleteTransaction}
         />

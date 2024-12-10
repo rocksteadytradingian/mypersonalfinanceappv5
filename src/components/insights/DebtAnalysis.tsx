@@ -6,8 +6,15 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 const COLORS = ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', '#8B5CF6'];
 
+interface DebtData {
+  name: string;
+  value: number;
+  minimumPayment: number;
+  interestRate: number;
+}
+
 export function DebtAnalysis() {
-  const { debts, transactions, userProfile } = useFinanceStore();
+  const { debts, transactions } = useFinanceStore();
   
   const totalDebt = debts.reduce((sum, debt) => sum + debt.amount, 0);
   const totalMinPayments = debts.reduce((sum, debt) => sum + debt.minimumPayment, 0);
@@ -31,13 +38,13 @@ export function DebtAnalysis() {
         <div>
           <p className="text-sm text-gray-600">Total Debt</p>
           <p className="text-2xl font-bold text-red-600">
-            {formatCurrency(totalDebt, userProfile?.currency)}
+            {formatCurrency(totalDebt)}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Monthly Payments</p>
           <p className="text-2xl font-bold text-orange-600">
-            {formatCurrency(totalMinPayments, userProfile?.currency)}
+            {formatCurrency(totalMinPayments)}
           </p>
         </div>
       </div>
@@ -58,9 +65,7 @@ export function DebtAnalysis() {
                 <Cell key={entry.name} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip 
-              formatter={(value) => formatCurrency(value as number, userProfile?.currency)} 
-            />
+            <Tooltip formatter={(value: number) => formatCurrency(value)} />
           </PieChart>
         </ResponsiveContainer>
       </div>
@@ -79,13 +84,13 @@ export function DebtAnalysis() {
               <div>
                 <p className="text-gray-600">Amount</p>
                 <p className="font-medium">
-                  {formatCurrency(debt.value, userProfile?.currency)}
+                  {formatCurrency(debt.value)}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600">Monthly</p>
                 <p className="font-medium">
-                  {formatCurrency(debt.minimumPayment, userProfile?.currency)}
+                  {formatCurrency(debt.minimumPayment)}
                 </p>
               </div>
               <div>

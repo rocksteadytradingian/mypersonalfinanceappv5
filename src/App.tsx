@@ -17,7 +17,6 @@ import { FundSourceManagement } from './components/FundSourceManagement';
 import { FundSourceDetails } from './components/fund-sources/FundSourceDetails';
 import { Reports } from './components/Reports';
 import { UserProfile } from './components/UserProfile';
-import { FinancialConsultant } from './components/FinancialConsultant';
 import { Navigation } from './components/Navigation';
 
 export function App() {
@@ -43,7 +42,6 @@ export function App() {
             <Route path="/fund-sources/:id" element={<FundSourceDetails />} />
             <Route path="/insights" element={<InsightsPanel />} />
             <Route path="/reports" element={<Reports />} />
-            <Route path="/consultant" element={<FinancialConsultant />} />
             <Route path="/profile" element={<UserProfile />} />
           </Routes>
         </main>

@@ -1,6 +1,6 @@
 import React from 'react';
-import { useFinanceStore } from '../../store/useFinanceStore';
 import { Card } from '../ui/Card';
+import { useFinanceStore } from '../../store/useFinanceStore';
 import { formatCurrency } from '../../utils/formatters';
 import { startOfMonth, endOfMonth } from 'date-fns';
 
@@ -44,19 +44,19 @@ export function BudgetAnalysis() {
         <div>
           <p className="text-sm text-gray-600">Total Budget</p>
           <p className="text-2xl font-bold text-blue-600">
-            {formatCurrency(totalBudget, userProfile?.currency)}
+            {formatCurrency(totalBudget)}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Total Spent</p>
           <p className="text-2xl font-bold text-red-600">
-            {formatCurrency(totalSpent, userProfile?.currency)}
+            {formatCurrency(totalSpent)}
           </p>
         </div>
         <div>
           <p className="text-sm text-gray-600">Remaining</p>
           <p className="text-2xl font-bold text-green-600">
-            {formatCurrency(totalRemaining, userProfile?.currency)}
+            {formatCurrency(totalRemaining)}
           </p>
         </div>
       </div>
@@ -71,7 +71,7 @@ export function BudgetAnalysis() {
             
             <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
               <div
-                className={`h-2 rounded- full ${
+                className={`h-2 rounded-full ${
                   budget.percentage > 100 
                     ? 'bg-red-600' 
                     : budget.percentage > 75 
@@ -86,13 +86,13 @@ export function BudgetAnalysis() {
               <div>
                 <p className="text-gray-600">Budget</p>
                 <p className="font-medium">
-                  {formatCurrency(budget.amount, userProfile?.currency)}
+                  {formatCurrency(budget.amount)}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600">Spent</p>
                 <p className="font-medium text-red-600">
-                  {formatCurrency(budget.spent, userProfile?.currency)}
+                  {formatCurrency(budget.spent)}
                 </p>
               </div>
               <div>
@@ -100,7 +100,7 @@ export function BudgetAnalysis() {
                 <p className={`font-medium ${
                   budget.remaining >= 0 ? 'text-green-600' : 'text-red-600'
                 }`}>
-                  {formatCurrency(Math.abs(budget.remaining), userProfile?.currency)}
+                  {formatCurrency(Math.abs(budget.remaining))}
                   {budget.remaining < 0 && ' over'}
                 </p>
               </div>

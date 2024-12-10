@@ -109,14 +109,6 @@ export function Navigation() {
               Reports
             </Link>
             <Link
-              to="/consultant"
-              className={`text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md whitespace-nowrap ${
-                location.pathname === '/consultant' ? 'text-blue-600' : ''
-              }`}
-            >
-              Consultant
-            </Link>
-            <Link
               to="/profile"
               className={`text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md whitespace-nowrap ${
                 location.pathname === '/profile' ? 'text-blue-600' : ''
